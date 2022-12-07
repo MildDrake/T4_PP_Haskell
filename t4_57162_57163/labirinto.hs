@@ -7,7 +7,8 @@ module Labirinto (
     jogador,
     chaves,
     terminado, 
-    move
+    move,
+    EstadoJogo(..)
 )where
 import Data.List
 import Data.Char
