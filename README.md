@@ -1,12 +1,2 @@
-*****
-*P*F*
-* * *
-*   *
-*****
-chaves: 
-*****
-*P*F*
-* * *
-*   *
-*****
-chaves: 
+Trabalho de HasKell
+T4 Francisco e Guilherme
