@@ -9,11 +9,32 @@ import Control.Monad
 import Labirinto
 import Data.Char
 
---import System.Random
 
 --função auxiliar que converte uma string num tuplo
 stringToTuple :: [Char] -> (Int, Int)
-stringToTuple str = (digitToInt(str!!1), digitToInt(str!!3))
+stringToTuple str = getMeTheTupleOf $ init $ tail str --remover a cabeça e o último elemento
+
+--Devolve um tuplo com dois numeros dados numa string a partir de um input
+--deste género:   xx,xx
+getMeTheTupleOf :: [Char] -> (Int,Int)
+getMeTheTupleOf str = (getBigNum [digitToInt x | x <- a] 1 , getBigNum [digitToInt x | x <-b] 1)
+                      where
+                        i = indexOf ',' str
+                        a = take (i) str
+                        b = drop (i+1) str
+                        
+--gets a list of ints and turns it into an int [5,4,1,8] -> 5418
+getBigNum :: [Int] -> Int -> Int
+getBigNum [] _ = 0
+getBigNum xs i = (last xs) * i + getBigNum (init xs) (i*10)   
+
+--Devolve o Index de um primeiro caracter numa determinada lista
+indexOf :: Char -> String -> Int
+indexOf c str = snd $ foldr ehChar (length str-1, -1) str
+              where 
+                ehChar x (i, f)
+                  |c == x = (i-1, i)
+                  |otherwise = (i-1, f)
 
 --função auxiliar que converte um tuplo para string
 tupleToString :: (Int,Int)-> [Char]
