@@ -63,7 +63,7 @@ main = do
       --                   -> Já se fez o output certo com a função 'show' watchout:
       let jogo = EstadoJogo (lines labirinto) chaves (stringToTuple jogador)
       hClose handle --fechar o handle
-      putStrLn $ show Jogo
+      putStrLn $ show jogo
       query jogo
     else if length args == 1 then do
       exists <- doesFileExist (head args)
