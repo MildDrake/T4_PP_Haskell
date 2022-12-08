@@ -49,18 +49,22 @@ query jogo = do
     query novoJogo
   else do
     putStr ""
+
 main = do
     args <- getArgs --Argumentos fornecidos quando excuta Main.hs 
     if null args then do
       handle <-  openFile "default.map" ReadMode
       jogador <- hGetLine handle
       chaves <- hGetLine handle
-      conteudo <- hGetContents handle
-      putStrLn jogador
-      putStrLn chaves
-      putStrLn conteudo
-      hClose handle
-      query (EstadoJogo (lines conteudo) chaves (stringToTuple jogador))
+      labirinto <- hGetContents handle
+      -- putStrLn jogador
+      -- putStrLn chaves   -> Esta linha dá-nos o ouput errado do labirintio
+      -- putStrLn conteudo -> para a consola, verifica no enunciado
+      --                   -> Já se fez o output certo com a função 'show' watchout:
+      let jogo = EstadoJogo (lines labirinto) chaves (stringToTuple jogador)
+      hClose handle --fechar o handle
+      putStrLn $ show jogo
+      query jogo
     else if length args == 1 then do
       exists <- doesFileExist (head args)
       if not exists then
@@ -70,11 +74,14 @@ main = do
         jogador <- hGetLine handle
         chaves <- hGetLine handle
         conteudo <- hGetContents handle
-        putStrLn jogador
-        putStrLn chaves
-        putStrLn conteudo
+        -- putStrLn jogador
+        -- putStrLn chaves
+        -- putStrLn conteudo
+        let jogo = EstadoJogo (lines labirinto) chaves (stringToTuple jogador)
+        putStrLn $ show jogo
         hClose handle
-        query (EstadoJogo (lines conteudo) chaves (stringToTuple jogador))
+        -- query (EstadoJogo (lines conteudo) chaves (stringToTuple jogador))
+        query jogo
     else putStrLn "Como utilizar:\n./Main [ficheiro] ->Carrega um ficheiro para jogar\n./Main.hs ->Carrega o ficheiro default para jogar\nMain.hs -t -Corre testes"
 
 
