@@ -13,31 +13,37 @@ import Data.Char
 import Labirinto
 import Test.QuickCheck
 
-
+-- Conta o número de caracteres iguais ao caracter fornecido numa determinada string
 contaChar :: String -> Char -> Int
-contaChar [] caracter = 0
+contaChar [] _ = 0
 contaChar (x:xs) caracter | x == caracter = 1 + contaChar xs caracter
                           | otherwise = 0 + contaChar xs caracter
 
+-- Conta o número de portas numa determinada string                          
 contaPortas :: String -> Int
 contaPortas lab = contaChar lab 'A' + contaChar lab 'B' + contaChar lab 'C'
 
+-- Verifica qual o caractere na posição fornecida
 vePosNoLab :: [String] -> (Int, Int) -> Char
 vePosNoLab lab pos = (lab!!fst pos)!!snd pos
 
+-- Devolve um gerador de movimentos válidos
 movesValidos :: Gen String
 movesValidos = listOf1 (elements "rdul") --justificar o limite inferior
+
 
 talvezPortal ::  Int -> [Char]
 talvezPortal n | n == 1 = "@@"
                | otherwise = ""
 
+-- Cria uma string "parede" com n caractéres            
 criaParede :: Int -> String
 criaParede 0 = []
 criaParede n = "*" ++ criaParede (n-1)
              
+-- 
 deStringParaLab :: String -> Int -> Int -> String
-deStringParaLab [] n j = []
+deStringParaLab [] _ _ = []
 deStringParaLab (x:xs) n j  | n == 0 =  criaParede (j+2) ++ "\n" ++ deStringParaLab (x:xs) (n+1) j
                             | n `mod` j == 1 = "*" ++ (x : "") ++ deStringParaLab xs (n+1) j
                             | n `mod` j == 0 = (x : "*") ++ "\n" ++ deStringParaLab xs (n+1) j
