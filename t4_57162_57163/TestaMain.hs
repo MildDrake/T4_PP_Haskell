@@ -76,8 +76,8 @@ prop_move_lab_space jogo cmd =  contaChar (unlines (labirinto jogo)) ' ' <= cont
 
 instance Arbitrary EstadoJogo where
     arbitrary = do
-       i <- (arbitrary :: Gen Int) `suchThat`(> 0)
-       j <- (arbitrary :: Gen Int) `suchThat`(> 0)
+       i <- (arbitrary :: Gen Int) `suchThat`(> 1) --justificar limite (por causa de 2x@ + SF = 4 espaços livres necessários e por isso i * j = 4 logo minimo valor para i e j tem que ser 2)
+       j <- (arbitrary :: Gen Int) `suchThat`(> 1) --justificar limite (por causa de 2x@ + SF = 4 espaços livres necessários e por isso i * j = 4 logo minimo valor para i e j tem que ser 2)
        portal <- choose (0,1)
        let caracteresExtra | portal == 0 = 2
                            | otherwise = 4

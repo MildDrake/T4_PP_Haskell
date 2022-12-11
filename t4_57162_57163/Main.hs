@@ -7,8 +7,9 @@ import System.IO
 import System.Directory
 import Control.Monad
 import Labirinto
+import TestaMain
 import Data.Char
-
+import Test.QuickCheck
 
 --função auxiliar que converte uma string num tuplo
 stringToTuple :: [Char] -> (Int, Int)
@@ -87,6 +88,15 @@ main = do
     args <- getArgs --Argumentos fornecidos quando excuta Main.hs 
     if null args then do
       load "default.map"
+    else if length args == 1 && head args == "-t" then do
+      quickCheck prop_move_lab_length
+      quickCheck prop_move_lab_bounds
+      quickCheck prop_move_lab_keys
+      quickCheck prop_move_lab_door
+      quickCheck prop_move_lab_pos_not_on_wall
+      quickCheck prop_move_lab_portal
+      quickCheck prop_move_lab_wall
+      quickCheck prop_move_lab_space 
     else if length args == 1 then do
       exists <- doesFileExist (head args)
       if not exists then
