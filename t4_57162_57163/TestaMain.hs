@@ -1,8 +1,18 @@
-
+module TestaMain (
+    prop_move_lab_length,
+    prop_move_lab_bounds,
+    prop_move_lab_keys,
+    prop_move_lab_door,
+    prop_move_lab_pos_not_on_wall,
+    prop_move_lab_portal,
+    prop_move_lab_wall,
+    prop_move_lab_space
+)where
 
 import Data.Char
 import Labirinto
 import Test.QuickCheck
+
 
 contaChar :: String -> Char -> Int
 contaChar [] caracter = 0
@@ -16,7 +26,27 @@ vePosNoLab :: [String] -> (Int, Int) -> Char
 vePosNoLab lab pos = (lab!!fst pos)!!snd pos
 
 movesValidos :: Gen String
-movesValidos = listOf1 (elements "rdul")
+movesValidos = listOf1 (elements "rdul") --justificar o limite inferior
+
+talvezPortal ::  Int -> [Char]
+talvezPortal n | n == 1 = "@@"
+               | otherwise = ""
+
+criaParede :: Int -> String
+criaParede 0 = []
+criaParede n = "*" ++ criaParede (n-1)
+             
+--deStringParaLab [] n j = [] 
+--deStringParaLab (x:xs) n j | n `mod` j == 0 = x :"" ++"\n" ++ deStringParaLab xs (n+1) j
+--                           | otherwise = x : deStringParaLab xs (n+1) j
+deStringParaLab :: String -> Int -> Int -> String
+deStringParaLab [] n j = []
+deStringParaLab (x:xs) n j  | n == 0 =  criaParede (j+2) ++ "\n" ++ deStringParaLab (x:xs) (n+1) j
+                            | n `mod` j == 1 = "*" ++ (x : "") ++ deStringParaLab xs (n+1) j
+                            | n `mod` j == 0 = (x : "*") ++ "\n" ++ deStringParaLab xs (n+1) j
+                            | n == (j+1) = (x : "\n") ++ criaParede (j+2)
+                            | otherwise = (x : "") ++ deStringParaLab xs (n+1) j
+
 
 prop_move_lab_length :: EstadoJogo -> [Char] -> Bool
 prop_move_lab_length jogo cmd = length (labirinto jogo) == length (labirinto (move jogo cmd)) &&
@@ -45,11 +75,18 @@ prop_move_lab_space :: EstadoJogo -> [Char] -> Bool
 prop_move_lab_space jogo cmd =  contaChar (unlines (labirinto jogo)) ' ' <= contaChar (unlines (labirinto (move jogo cmd))) ' '
 
 instance Arbitrary EstadoJogo where
-    arbitrary = do       
-       c <- arbitrary
-       return (inicializa c)
+    arbitrary = do
+       i <- (arbitrary :: Gen Int) `suchThat`(> 0)
+       j <- (arbitrary :: Gen Int) `suchThat`(> 0)
+       portal <- choose (0,1)
+       let caracteresExtra | portal == 0 = 2
+                           | otherwise = 4
+       str <- vectorOf (i*j-caracteresExtra) (elements "ABCabc* ")
+       randomLab <- shuffle ("SF"++str++talvezPortal portal)
+       let validoLab = lines ( deStringParaLab randomLab 0 j)
+       return (inicializa (validoLab ++[criaParede (j +2)]))
 
-newtype Movimentos = Movimentos String 
+newtype Movimentos = Movimentos String
 
 instance Arbitrary Movimentos where
     arbitrary = do
