@@ -36,43 +36,47 @@ criaParede :: Int -> String
 criaParede 0 = []
 criaParede n = "*" ++ criaParede (n-1)
              
---deStringParaLab [] n j = [] 
---deStringParaLab (x:xs) n j | n `mod` j == 0 = x :"" ++"\n" ++ deStringParaLab xs (n+1) j
---                           | otherwise = x : deStringParaLab xs (n+1) j
 deStringParaLab :: String -> Int -> Int -> String
 deStringParaLab [] n j = []
 deStringParaLab (x:xs) n j  | n == 0 =  criaParede (j+2) ++ "\n" ++ deStringParaLab (x:xs) (n+1) j
                             | n `mod` j == 1 = "*" ++ (x : "") ++ deStringParaLab xs (n+1) j
                             | n `mod` j == 0 = (x : "*") ++ "\n" ++ deStringParaLab xs (n+1) j
-                            | n == (j+1) = (x : "\n") ++ criaParede (j+2)
+                            | n == (j+1) = (x : "\n") ++ criaParede (j+2) --talvez por condição adicional na 2a guarda para o ciclo chegar aqui
                             | otherwise = (x : "") ++ deStringParaLab xs (n+1) j
 
+-- Testa se a length to labirinto não se altera depois de um move
+prop_move_lab_length :: EstadoJogo -> Movimentos -> Bool
+prop_move_lab_length jogo cmd = length (labirinto jogo) == length (labirinto (move jogo (paraString cmd))) &&
+                               length (head (labirinto jogo)) == length (head  (labirinto (move jogo (paraString cmd))))
 
-prop_move_lab_length :: EstadoJogo -> [Char] -> Bool
-prop_move_lab_length jogo cmd = length (labirinto jogo) == length (labirinto (move jogo cmd)) &&
-                               length (head (labirinto jogo)) == length (head  (labirinto (move jogo cmd)))
+-- Testa se um jogador não sai do labirinto depois de um move
+prop_move_lab_bounds :: EstadoJogo -> Movimentos -> Bool
+prop_move_lab_bounds jogo cmd = fst (jogador (move jogo (paraString cmd))) >= 0 && fst (jogador (move jogo (paraString cmd))) < length (labirinto jogo) &&
+                                snd (jogador (move jogo (paraString cmd))) >= 0 && snd (jogador (move jogo (paraString cmd))) < length (head (labirinto jogo))
 
-prop_move_lab_bounds :: EstadoJogo -> [Char] -> Bool
-prop_move_lab_bounds jogo cmd = fst (jogador (move jogo cmd)) >= 0 && fst (jogador (move jogo cmd)) < length (labirinto jogo) &&
-                                snd (jogador (move jogo cmd)) >= 0 && snd (jogador (move jogo cmd)) < length (head (labirinto jogo))
+-- Testa se o número de chaves não diminui depois de um move
+prop_move_lab_keys :: EstadoJogo -> Movimentos -> Bool
+prop_move_lab_keys jogo cmd = length (chaves jogo) <= length (chaves (move jogo (paraString cmd)))
 
-prop_move_lab_keys :: EstadoJogo -> [Char] -> Bool
-prop_move_lab_keys jogo cmd = length (chaves jogo) <= length (chaves (move jogo cmd))
+-- Testa se o número de portas não aumenta depois de um move
+prop_move_lab_door :: EstadoJogo -> Movimentos -> Bool
+prop_move_lab_door jogo cmd = contaPortas (unlines (labirinto jogo)) >= contaPortas (unlines (labirinto (move jogo (paraString cmd))))
 
-prop_move_lab_door :: EstadoJogo -> [Char] -> Bool
-prop_move_lab_door jogo cmd = contaPortas (unlines (labirinto jogo)) >= contaPortas (unlines (labirinto (move jogo cmd)))
 
-prop_move_lab_pos_not_on_wall :: EstadoJogo -> [Char] -> Bool
-prop_move_lab_pos_not_on_wall jogo cmd = vePosNoLab (labirinto (move jogo cmd)) (jogador (move jogo cmd)) /= '*'
+prop_move_lab_pos_not_on_wall :: EstadoJogo -> Movimentos -> Bool
+prop_move_lab_pos_not_on_wall jogo cmd = vePosNoLab (labirinto (move jogo (paraString cmd))) (jogador (move jogo (paraString cmd))) /= '*'
 
-prop_move_lab_portal :: EstadoJogo -> [Char] -> Bool
-prop_move_lab_portal jogo cmd =  contaChar (unlines (labirinto jogo)) '@' == contaChar (unlines (labirinto (move jogo cmd))) '@'
+-- Testa se o número de portais não se altera depois de um move
+prop_move_lab_portal :: EstadoJogo -> Movimentos -> Bool
+prop_move_lab_portal jogo cmd =  contaChar (unlines (labirinto jogo)) '@' == contaChar (unlines (labirinto (move jogo (paraString cmd)))) '@'
 
-prop_move_lab_wall :: EstadoJogo -> [Char] -> Bool
-prop_move_lab_wall jogo cmd =  contaChar (unlines (labirinto jogo)) '*' == contaChar (unlines (labirinto (move jogo cmd))) '*'
+-- Testa se o número de parede não se altera depois de um move
+prop_move_lab_wall :: EstadoJogo -> Movimentos -> Bool
+prop_move_lab_wall jogo cmd =  contaChar (unlines (labirinto jogo)) '*' == contaChar (unlines (labirinto (move jogo (paraString cmd)))) '*'
 
-prop_move_lab_space :: EstadoJogo -> [Char] -> Bool
-prop_move_lab_space jogo cmd =  contaChar (unlines (labirinto jogo)) ' ' <= contaChar (unlines (labirinto (move jogo cmd))) ' '
+-- Testa se o número de espaços não diminui depois de um move
+prop_move_lab_space :: EstadoJogo -> Movimentos -> Bool
+prop_move_lab_space jogo cmd =  contaChar (unlines (labirinto jogo)) ' ' <= contaChar (unlines (labirinto (move jogo (paraString cmd)))) ' '
 
 instance Arbitrary EstadoJogo where
     arbitrary = do
@@ -86,7 +90,10 @@ instance Arbitrary EstadoJogo where
        let validoLab = lines ( deStringParaLab randomLab 0 j)
        return (inicializa (validoLab ++[criaParede (j +2)]))
 
-newtype Movimentos = Movimentos String
+newtype Movimentos = Movimentos String deriving (Show)
+
+paraString :: Movimentos -> String
+paraString (Movimentos str) = str
 
 instance Arbitrary Movimentos where
     arbitrary = do
