@@ -16,7 +16,7 @@ stringToTuple :: [Char] -> (Int, Int)
 stringToTuple str = getMeTheTupleOf $ init $ tail str --remover a cabeça e o último elemento
 
 --Devolve um tuplo com dois numeros dados numa string a partir de um input
---deste género:   xx,xx
+--deste género:  xx,xx
 getMeTheTupleOf :: [Char] -> (Int,Int)
 getMeTheTupleOf str = (getBigNum [digitToInt x | x <- a] 1 , getBigNum [digitToInt x | x <-b] 1)
                       where

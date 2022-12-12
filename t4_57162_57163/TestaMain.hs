@@ -116,7 +116,3 @@ instance Arbitrary Movimentos where
         Movimentos <$> movesValidos
       --  a <- movesValidos
       --  return (Movimentos a)
-
-
-
-
