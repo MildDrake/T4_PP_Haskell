@@ -44,9 +44,7 @@ tupleToString t = "(" ++ (intToDigit (fst t):",") ++ (intToDigit (snd t) : "") +
 --recebe o nome do ficheiro e um jogo. Guarda o progresso do jogo no ficheiro
 save :: FilePath -> Labirinto.EstadoJogo -> IO ()
 save ficheiro jogo = do
-                putStrLn (tupleToString (jogador jogo))
-                putStrLn (chaves jogo)
-                putStr (unlines (labirinto jogo))
+                print jogo
                 writeFile ficheiro (tupleToString (jogador jogo) ++ "\n")
                 appendFile ficheiro (chaves jogo ++ "\n")
                 appendFile ficheiro (unlines (labirinto jogo))

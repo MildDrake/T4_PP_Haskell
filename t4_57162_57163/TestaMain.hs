@@ -33,8 +33,11 @@ vePosNoLab :: [String] -> (Int, Int) -> Char
 vePosNoLab lab pos = (lab!!fst pos)!!snd pos
 
 -- Devolve um gerador de movimentos válidos
+-- Como o objetivo é criar uma string aleatória válida para testar as propriedades de um labirinto depois do uso da função move
+-- decidimos por um limite inferior de 1 caracter minimo na String, porque, uma String vazia não é válida já que não contém
+-- nenhum dos caracteres válidos 'r','d','u' e 'l'.
 movesValidos :: Gen String
-movesValidos = listOf1 (elements "rdul") --justificar o limite inferior
+movesValidos = listOf1 (elements "rdul")
 
 --Decide a partir do input se o jogo tem ou não portais
 talvezPortal ::  Int -> [Char]
@@ -46,13 +49,12 @@ criaParede :: Int -> String
 criaParede 0 = []
 criaParede n = "*" ++ criaParede (n-1)
 
--- Cria um labirintoa partir de uma string. O 2º parâmtero deve ser sempre = 0
+-- Cria um labirinto a partir de uma string. O 2º parâmtero deve ser sempre = 0
 deStringParaLab :: String -> Int -> Int -> String
 deStringParaLab [] _ _ = []
 deStringParaLab (x:xs) n j  | n == 0 =  criaParede (j+2) ++ "\n" ++ deStringParaLab (x:xs) (n+1) j --parede inicial
                             | n `mod` j == 1 = "*" ++ (x : "") ++ deStringParaLab xs (n+1) j       --parede do lado esquedo
                             | n `mod` j == 0 = (x : "*") ++ "\n" ++ deStringParaLab xs (n+1) j     --parede do lado direito
-                            | n == (j+1) = (x : "\n") ++ criaParede (j+2)             --talvez por condição adicional na 2a guarda para o ciclo chegar aqui
                             | otherwise = (x : "") ++ deStringParaLab xs (n+1) j
 
 -- Testa se a length to labirinto não se altera depois de um move
@@ -94,10 +96,15 @@ prop_move_lab_wall jogo cmd =  contaChar (unlines (labirinto jogo)) '*' == conta
 prop_move_lab_space :: EstadoJogo -> Movimentos -> Bool
 prop_move_lab_space jogo cmd =  contaChar (unlines (labirinto jogo)) ' ' <= contaChar (unlines (labirinto (move jogo (paraString cmd)))) ' '
 
+-- i e j vão ser o número de linhas e colunas (respetivamente) sem contar com as paredes da orla exterior.
+-- Como no total pode haver 4 caracteres obrigatórios ('S','F', e 2 '@') decidimos por um limite inferior de
+-- 2 linhas e 2 colunas (sem contar com as paredes da orla exterior).
+-- Assim se i e j foram ambos de valor 2, o labirinto criado vai ser 2x2 (4x4 se contarmos com as paredes na orla exterior)
+-- tendo assim os 4 espaços minimos necessários para o labirinto criado ser válido.
 instance Arbitrary EstadoJogo where
     arbitrary = do
-       i <- (arbitrary :: Gen Int) `suchThat`(> 1) --justificar limite (por causa de 2x@ + SF = 4 espaços livres necessários e por isso i * j = 4 logo minimo valor para i e j tem que ser 2)
-       j <- (arbitrary :: Gen Int) `suchThat`(> 1) --justificar limite (por causa de 2x@ + SF = 4 espaços livres necessários e por isso i * j = 4 logo minimo valor para i e j tem que ser 2)
+       i <- (arbitrary :: Gen Int) `suchThat`(> 1)
+       j <- (arbitrary :: Gen Int) `suchThat`(> 1) 
        portal <- choose (0,1)
        let caracteresExtra | portal == 0 = 2
                            | otherwise = 4
@@ -114,5 +121,3 @@ paraString (Movimentos str) = str
 instance Arbitrary Movimentos where
     arbitrary = do
         Movimentos <$> movesValidos
-      --  a <- movesValidos
-      --  return (Movimentos a)

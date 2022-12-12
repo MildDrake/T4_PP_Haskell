@@ -1,4 +1,4 @@
--- T3 PP
+-- T4 PP
 -- Guilherme Dias     n57163
 -- Francisco Resendes n57162
 module Labirinto (
