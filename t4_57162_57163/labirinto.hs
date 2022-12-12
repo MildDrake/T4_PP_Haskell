@@ -8,6 +8,7 @@ module Labirinto (
     chaves,
     terminado,
     move,
+    posicaoDeC,
     EstadoJogo(..)
 )where
 import Data.List

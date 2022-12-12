@@ -7,7 +7,7 @@ module TestaMain (
     prop_move_lab_bounds,
     prop_move_lab_keys,
     prop_move_lab_door,
-    prop_move_lab_start_finish,
+    prop_move_lab_startnfinish_pos,
     prop_move_lab_pos_not_on_wall,
     prop_move_lab_portal,
     prop_move_lab_wall,
@@ -77,10 +77,10 @@ prop_move_lab_door jogo cmd = contaPortas (unlines (labirinto jogo)) >= contaPor
 prop_move_lab_pos_not_on_wall :: EstadoJogo -> Movimentos -> Bool
 prop_move_lab_pos_not_on_wall jogo cmd = vePosNoLab (labirinto (move jogo (paraString cmd))) (jogador (move jogo (paraString cmd))) /= '*'
 
---Testa se a casa de partida e de chegada não se alteram depois de um move
-prop_move_lab_start_finish :: EstadoJogo -> Movimentos -> Bool
-prop_move_lab_start_finish jogo cmd = contaChar (unlines (labirinto jogo)) 'S' == contaChar (unlines (labirinto (move jogo (paraString cmd)))) 'S' &&
-                                        contaChar (unlines (labirinto jogo)) 'F' == contaChar (unlines (labirinto (move jogo (paraString cmd)))) 'F'
+--Testa se a casa de partida e de chegada não alteram de posição depois de um move
+prop_move_lab_startnfinish_pos :: EstadoJogo -> Movimentos -> Bool
+prop_move_lab_startnfinish_pos jogo cmd = posicaoDeC (labirinto jogo) 'S' == posicaoDeC (labirinto (move jogo (paraString cmd))) 'S' &&
+                                        posicaoDeC (labirinto jogo) 'F' == posicaoDeC (labirinto (move jogo (paraString cmd))) 'F'
 
 -- Testa se o número de portais não se altera depois de um move
 prop_move_lab_portal :: EstadoJogo -> Movimentos -> Bool

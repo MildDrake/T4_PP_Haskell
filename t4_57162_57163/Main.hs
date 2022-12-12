@@ -94,7 +94,7 @@ main = do
       quickCheck prop_move_lab_keys
       quickCheck prop_move_lab_door
       quickCheck prop_move_lab_pos_not_on_wall
-      quickCheck prop_move_lab_start_finish
+      quickCheck prop_move_lab_startnfinish_pos
       quickCheck prop_move_lab_portal
       quickCheck prop_move_lab_wall
       quickCheck prop_move_lab_space
