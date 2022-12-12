@@ -1,8 +1,13 @@
+-- T4 PP
+-- Guilherme Dias    n57163
+-- Francisco Resendes n57162
+
 module TestaMain (
     prop_move_lab_length,
     prop_move_lab_bounds,
     prop_move_lab_keys,
     prop_move_lab_door,
+    prop_move_lab_start_finish,
     prop_move_lab_pos_not_on_wall,
     prop_move_lab_portal,
     prop_move_lab_wall,
@@ -31,7 +36,7 @@ vePosNoLab lab pos = (lab!!fst pos)!!snd pos
 movesValidos :: Gen String
 movesValidos = listOf1 (elements "rdul") --justificar o limite inferior
 
-
+--Decide a partir do input se o jogo tem ou não portais
 talvezPortal ::  Int -> [Char]
 talvezPortal n | n == 1 = "@@"
                | otherwise = ""
@@ -40,14 +45,14 @@ talvezPortal n | n == 1 = "@@"
 criaParede :: Int -> String
 criaParede 0 = []
 criaParede n = "*" ++ criaParede (n-1)
-             
--- 
+
+-- Cria um labirintoa partir de uma string. O 2º parâmtero deve ser sempre = 0
 deStringParaLab :: String -> Int -> Int -> String
 deStringParaLab [] _ _ = []
-deStringParaLab (x:xs) n j  | n == 0 =  criaParede (j+2) ++ "\n" ++ deStringParaLab (x:xs) (n+1) j
-                            | n `mod` j == 1 = "*" ++ (x : "") ++ deStringParaLab xs (n+1) j
-                            | n `mod` j == 0 = (x : "*") ++ "\n" ++ deStringParaLab xs (n+1) j
-                            | n == (j+1) = (x : "\n") ++ criaParede (j+2) --talvez por condição adicional na 2a guarda para o ciclo chegar aqui
+deStringParaLab (x:xs) n j  | n == 0 =  criaParede (j+2) ++ "\n" ++ deStringParaLab (x:xs) (n+1) j --parede inicial
+                            | n `mod` j == 1 = "*" ++ (x : "") ++ deStringParaLab xs (n+1) j       --parede do lado esquedo
+                            | n `mod` j == 0 = (x : "*") ++ "\n" ++ deStringParaLab xs (n+1) j     --parede do lado direito
+                            | n == (j+1) = (x : "\n") ++ criaParede (j+2)             --talvez por condição adicional na 2a guarda para o ciclo chegar aqui
                             | otherwise = (x : "") ++ deStringParaLab xs (n+1) j
 
 -- Testa se a length to labirinto não se altera depois de um move
@@ -72,11 +77,16 @@ prop_move_lab_door jogo cmd = contaPortas (unlines (labirinto jogo)) >= contaPor
 prop_move_lab_pos_not_on_wall :: EstadoJogo -> Movimentos -> Bool
 prop_move_lab_pos_not_on_wall jogo cmd = vePosNoLab (labirinto (move jogo (paraString cmd))) (jogador (move jogo (paraString cmd))) /= '*'
 
+--Testa se a casa de partida e de chegada não se alteram depois de um move
+prop_move_lab_start_finish :: EstadoJogo -> Movimentos -> Bool
+prop_move_lab_start_finish jogo cmd = contaChar (unlines (labirinto jogo)) 'S' == contaChar (unlines (labirinto (move jogo (paraString cmd)))) 'S' &&
+                                        contaChar (unlines (labirinto jogo)) 'F' == contaChar (unlines (labirinto (move jogo (paraString cmd)))) 'F'
+
 -- Testa se o número de portais não se altera depois de um move
 prop_move_lab_portal :: EstadoJogo -> Movimentos -> Bool
 prop_move_lab_portal jogo cmd =  contaChar (unlines (labirinto jogo)) '@' == contaChar (unlines (labirinto (move jogo (paraString cmd)))) '@'
 
--- Testa se o número de parede não se altera depois de um move
+-- Testa se o número de paredes não se altera depois de um move
 prop_move_lab_wall :: EstadoJogo -> Movimentos -> Bool
 prop_move_lab_wall jogo cmd =  contaChar (unlines (labirinto jogo)) '*' == contaChar (unlines (labirinto (move jogo (paraString cmd)))) '*'
 
@@ -93,8 +103,8 @@ instance Arbitrary EstadoJogo where
                            | otherwise = 4
        str <- vectorOf (i*j-caracteresExtra) (elements "ABCabc* ")
        randomLab <- shuffle ("SF"++str++talvezPortal portal)
-       let validoLab = lines ( deStringParaLab randomLab 0 j)
-       return (inicializa (validoLab ++[criaParede (j +2)]))
+       let validoLab = lines (deStringParaLab randomLab 0 j)
+       return $ inicializa (validoLab ++[criaParede (j +2)])
 
 newtype Movimentos = Movimentos String deriving (Show)
 
@@ -103,8 +113,9 @@ paraString (Movimentos str) = str
 
 instance Arbitrary Movimentos where
     arbitrary = do
-        a <- movesValidos
-        return (Movimentos a)
+        Movimentos <$> movesValidos
+      --  a <- movesValidos
+      --  return (Movimentos a)
 
 
 

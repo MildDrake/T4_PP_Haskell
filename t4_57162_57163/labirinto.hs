@@ -6,7 +6,7 @@ module Labirinto (
     inicializa,
     jogador,
     chaves,
-    terminado, 
+    terminado,
     move,
     EstadoJogo(..)
 )where
@@ -14,7 +14,7 @@ import Data.List
 import Data.Char
 -- A
 data EstadoJogo = EstadoJogo{labirinto:: [String],
-                            chavesDoJogador:: [Char],
+                            chavesDoJogador:: String,
                             posicaoDoJogador:: (Int,Int)
                             }
 
@@ -24,7 +24,7 @@ inicializa lab = EstadoJogo lab [] (posicaoDeC lab 'S')
 
 -- A2
 jogador :: EstadoJogo -> (Int,Int)
-jogador jogo = posicaoDoJogador jogo
+jogador = posicaoDoJogador
 
 -- A3
 chaves :: EstadoJogo -> String
@@ -40,18 +40,18 @@ instance Show EstadoJogo where
 
 
 -- FUNÇÕES AUXILIARES A
-prt :: [[Char]] -> [Char]
+prt :: [String] -> String
 prt [] = []
 prt  (x:xs) = x ++ "\n" ++ prt xs
 
 --Devove uma lista de lista com 'P' na posição do jogador
-replaceJ :: [[Char]] -> (Int, Int) -> (Int, Int) -> [[Char]]
+replaceJ :: [String] -> (Int, Int) -> (Int, Int) -> [String]
 replaceJ [] (y,ys) (z,zs) = []
 replaceJ x (y,ys) (z,zs) |z /= y = head x : replaceJ (tail x) (y,ys) (z+1,zs)
                          |otherwise = replaceI (head x) (y,ys) (z,zs)  : replaceJ (tail x) (y,ys) (z+1,zs)
 
 --recebe uma lista e se for a posicão recebida altera o elemento dessa posicão por 'P'
-replaceI :: [Char] -> (Int, Int) -> (Int, Int) -> [Char]
+replaceI :: String -> (Int, Int) -> (Int, Int) -> String
 replaceI [] (y,ys) (z,zs) =  []
 replaceI (x:xs) (y,ys) (z,zs) |(y,ys) == (z,zs) =  'P' : replaceI xs (y,ys) (z,zs + 1)
                               |otherwise = x : replaceI xs (y,ys) (z,zs + 1)
@@ -59,8 +59,8 @@ replaceI (x:xs) (y,ys) (z,zs) |(y,ys) == (z,zs) =  'P' : replaceI xs (y,ys) (z,z
 
 --B
 -- move o jogador nas direções dadas
-move :: EstadoJogo -> [Char] -> EstadoJogo
-move lab x = foldl faz lab x
+move :: EstadoJogo -> String -> EstadoJogo
+move = foldl faz
 
 --FUNCOES AUXILIARES B
 --move o jogador na direcão dada
@@ -90,8 +90,8 @@ proximaPos lab c | c == 'u' = EstadoJogo (labirinto lab) (chaves lab)  (mudaPos 
                      | otherwise = EstadoJogo (labirinto lab) (chaves lab)  (mudaPos (jogador lab) 3)
 
 -- Dada uma posição de uma lista de listas retorna o elemento que está nessa posicao
-procuraPosicao :: (Int, Int) -> [[Char]] -> Char
-procuraPosicao (x,y) z = (z!!x)!!y
+procuraPosicao :: (Int, Int) -> [String] -> Char
+procuraPosicao (x,y) lab = lab!!x!!y
 
 --Vê qual o caracter para onde o jogador quer ir e caso o jogador mova para essa posição faz as acoes necessárias
 mexe :: EstadoJogo -> Char -> EstadoJogo
@@ -112,13 +112,13 @@ anteriorPos lab x   | x == 'u' = EstadoJogo (labirinto lab) (chaves lab)  (mudaP
                     | otherwise = EstadoJogo (labirinto lab) (chaves lab)  (mudaPos (jogador lab) 1)
 
 ---- Vai devolver uma lista de listas já com o elemento em (y,ys) substituido pelo parametro c
-rplJ :: [[Char]] -> (Int, Int) -> (Int, Int) -> Char -> [[Char]]
+rplJ :: [String] -> (Int, Int) -> (Int, Int) -> Char -> [String]
 rplJ [] (y,ys) (z,zs) c = []
 rplJ x (y,ys) (z,zs) c |z /= y = head x : rplJ (tail x) (y,ys) (z+1,zs) c
                            |otherwise = rplI (head x) (y,ys) (z,zs) c : rplJ (tail x) (y,ys) (z+1,zs) c
 
 --Vai na lista recebida 
-rplI :: [Char] -> (Int, Int) -> (Int, Int) ->  Char -> [Char]
+rplI :: String -> (Int, Int) -> (Int, Int) ->  Char -> String
 rplI [] (y,ys) (z,zs) c =  []
 rplI (x:xs) (y,ys) (z,zs) c |(y,ys) == (z,zs) =  c : rplI xs (y,ys) (z,zs + 1) c
                                 |otherwise = x : rplI xs (y,ys) (z,zs + 1) c
@@ -139,7 +139,7 @@ obtemChave :: EstadoJogo -> EstadoJogo
 obtemChave lab = EstadoJogo (labirinto (substituiChave lab))  (sort(chaves lab ++ (procuraPosicao (jogador lab) (labirinto lab) : ""))) (jogador lab)
 
 --Verifica se o jogador tem a chave correspondente a porta onde quer ir
-temChave :: [Char] -> Char -> Int
+temChave :: String -> Char -> Int
 temChave [] c = 0
 temChave [x] c |x == toLower c = 1
                |otherwise = 0
@@ -147,7 +147,7 @@ temChave (x:xs) c |x == toLower c = 1
                   |otherwise = temChave xs c
 
 --Substitui a porta onde o jogador está por ' '
-substituiPorta :: EstadoJogo -> [[Char]]
+substituiPorta :: EstadoJogo -> [String]
 substituiPorta lab = rplJ (labirinto lab) (jogador lab) (0,0) ' '
 
 --Se tiver a chave para a porta onde quer ir vai para lá senão volta para onde estava
@@ -156,27 +156,27 @@ vaiParaPorta lab c | temChave (chaves lab ) (procuraPosicao (jogador lab) (labir
             | otherwise = anteriorPos lab c
 
 --Indica a primeira posicao onde o parametro c aparece
-posicaoDeC :: [[Char]] -> Char -> (Int, Int)
+posicaoDeC :: [String] -> Char -> (Int, Int)
 posicaoDeC x c = (index x c, countStart (x!! index x c) c-1)
 
 -- como a função try não comeca a contagem do zero é necessario decrementar o valor recebido
-index :: [[Char]] -> Char -> Int 
+index :: [String] -> Char -> Int
 index x c = try x c - 1
 
 --verifica se existe C na lista
-checkStart :: [Char] -> Char -> Int  
+checkStart :: String -> Char -> Int
 checkStart [] c = 0
 checkStart (x:xs) c | x == c = 1 + checkStart xs c
                    | otherwise = checkStart xs c
 
 -- indica o index do C na lista (será o j de (i,j))
-countStart :: [Char] -> Char -> Int  
+countStart :: String -> Char -> Int
 countStart [] c = 0
 countStart (x:xs) c | x == c = 1 + countStart [] c
                     | otherwise = 1 + countStart xs c
 
 -- indica o index da lista que tem o C (será o i de (i,j))
-try :: [[Char]] -> Char -> Int  
+try :: [String] -> Char -> Int
 try [] c = 0
 try x  c| checkStart (head x) c > 0 = 1 + try[] c
         | otherwise = 1 + try (tail x) c

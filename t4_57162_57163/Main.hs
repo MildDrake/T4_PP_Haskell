@@ -21,18 +21,18 @@ getMeTheTupleOf :: [Char] -> (Int,Int)
 getMeTheTupleOf str = (getBigNum [digitToInt x | x <- a] 1 , getBigNum [digitToInt x | x <-b] 1)
                       where
                         i = indexOf ',' str
-                        a = take (i) str
+                        a = take i str
                         b = drop (i+1) str
-                        
+
 --gets a list of ints and turns it into an int [5,4,1,8] -> 5418
 getBigNum :: [Int] -> Int -> Int
 getBigNum [] _ = 0
-getBigNum xs i = (last xs) * i + getBigNum (init xs) (i*10)   
+getBigNum xs i = last xs * i + getBigNum (init xs) (i*10)
 
 --Devolve o Index de um primeiro caracter numa determinada lista
 indexOf :: Char -> String -> Int
 indexOf c str = snd $ foldr ehChar (length str-1, -1) str
-              where 
+              where
                 ehChar x (i, f)
                   |c == x = (i-1, i)
                   |otherwise = (i-1, f)
@@ -61,7 +61,7 @@ load ficheiro = do
                 chaves <- hGetLine handle
                 conteudo <- hGetContents handle
                 let jogo = EstadoJogo (lines conteudo) chaves (stringToTuple jogador)
-                putStrLn $ show jogo
+                print jogo
                 hClose handle
                 query jogo
 
@@ -78,7 +78,7 @@ query jogo = do
     query jogo
   else if take 4 qry == "move" then do
     let novoJogo = move jogo (drop 5 qry)
-    putStrLn $ show novoJogo
+    print novoJogo
     query novoJogo
   else do
     query jogo
@@ -94,9 +94,10 @@ main = do
       quickCheck prop_move_lab_keys
       quickCheck prop_move_lab_door
       quickCheck prop_move_lab_pos_not_on_wall
+      quickCheck prop_move_lab_start_finish
       quickCheck prop_move_lab_portal
       quickCheck prop_move_lab_wall
-      quickCheck prop_move_lab_space 
+      quickCheck prop_move_lab_space
     else if length args == 1 then do
       exists <- doesFileExist (head args)
       if not exists then
